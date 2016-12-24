@@ -1,0 +1,4 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 3.6.1)
+PROJECT( first_test )
+ADD_EXECUTABLE(first_test test.cpp)
+
