@@ -4,10 +4,9 @@
 class RFIDSensor
 {
 public:
-    RFIDSensor();
-    ~RFIDSensor();
-    void DetectedRFID();
-    void RFIDGoingOutOfRange();
+    virtual ~RFIDSensor() { }
+    void DetectedRFID() = 0;
+    //void RFIDGoingOutOfRange() = 0;
 };
 
 #endif

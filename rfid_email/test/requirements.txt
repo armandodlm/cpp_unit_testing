@@ -10,7 +10,7 @@ There's a database of sorts that maps users to emails and RFIDs
 Owner receives emails
 
 Test cases:
-Nothing has changed, no notifications
+x Nothing has changed, no notifications
 RFID tag detected by sensor, notify owner
 RFID tag detected going out of range, notify owner
 

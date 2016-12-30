@@ -29,3 +29,9 @@ RFIDSensor::RFIDSensor()
 RFIDSensor::~RFIDSensor()
 {
 }
+
+
+void RFIDSensor::DetectedRFID( int tag )
+{
+    FakeSensorNamespace::FakeSensor_SetLastDetected( tag );
+}

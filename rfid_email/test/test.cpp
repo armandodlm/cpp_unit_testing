@@ -33,3 +33,9 @@ TEST_F( WhoIsHomeTestSuite, FreshStartMeansNoEmailsSent )
 {
     EXPECT_EQ( NOTHING_REGISTERD, FakeSensor_LastDetected() );
 }
+
+
+TEST_F( WhoIsHomeTestSuite, RFIDDetectedBySensorArbitraryUser )
+{
+
+}
