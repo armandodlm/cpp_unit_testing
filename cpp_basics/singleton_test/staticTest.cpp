@@ -1,5 +1,15 @@
 #include <iostream>
 
+/*
+    Notes:
+        
+        A static Instance() will allow us to use a local static to init the instance once.
+        Returning a reference (Singleton&) prevents us from allocating memory in the heap. 
+
+        Need to delete or make private items that would allow user to make copies of singleton etc.
+*/
+
+
 namespace StaticTest
 {
     namespace Inspection
@@ -12,7 +22,7 @@ namespace StaticTest
         public:
 
             Singleton& operator=(const Singleton&) = delete;
-
+            Singleton(const Singleton&) = delete;
 
             static Singleton& Instance()
             {
