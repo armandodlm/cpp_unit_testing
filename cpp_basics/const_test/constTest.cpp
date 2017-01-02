@@ -104,13 +104,8 @@ class ConsterTestSuite : public ::testing::Test
 {
 public:
 
-void SetUp()
-{
-}
-
-void TearDown()
-{
-}
+void SetUp() {}
+void TearDown() {}
 
 };
 
