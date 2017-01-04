@@ -1,6 +1,12 @@
 #include "ConsterInterface.h"
 #include <gtest/gtest.h>
 
+namespace
+{
+bool s_operationSuccessful = false;
+bool s_constInvoked = false;
+int s_accessCounter = 0;
+}
 
 namespace ConstNamespace
 {
@@ -9,89 +15,76 @@ class Conster : public ConsterInterface
 {
 
 public:
-    Conster() :
-     m_value( 10 ),
-     m_constInvoked( false ),
-     m_isReady( false ),
-     m_operationSuccessful( false ) {} 
+
+    Conster() : m_value( 10 ), m_isReady( false ){}
 
     void constInvokedThroughNonConstMethod() const
     {
-        m_constInvoked = true;
+        s_constInvoked = true;
     }
 
     void constInvokedThroughNonConstMethod()
     {
-       m_constInvoked = false;
-       static_cast<const Conster&>(*this).constInvokedThroughNonConstMethod();
+        static_cast<const Conster&>(*this).constInvokedThroughNonConstMethod();
     }
 
     int getValue() const
     {
-        m_constInvoked = true;
+        s_constInvoked = true;
         return m_value;   
     }
 
     int getValue()
     {
-        m_constInvoked = false;
+        s_constInvoked = false;
         return m_value;
     }
 
     void setValue(const int value )
     {
-        m_constInvoked = false;
-        m_operationSuccessful = true;
+        s_constInvoked = false;
+        s_operationSuccessful = true;
         m_value = value;
     }       
 
     void setValue( const int value ) const
     {
-        m_constInvoked = true;
-        m_operationSuccessful = false;
+        s_constInvoked = true;
+        s_operationSuccessful = false;
     }       
     
-    void onlyNonOverloaded() const
+    void nonOverloaded() const
     {
-        m_constInvoked = true;
+        s_constInvoked = true;
     }
 
 
     bool isReady() const
     {
+        s_constInvoked = true;
         // it'll be ready after first invocation
         if( !m_isReady )
-        { 
+        {
+            s_accessCounter++;
             // do some initial setup that is never repeated
             m_isReady = true;
         }
         return m_isReady;
     }
-    
-    bool wasConstMethodUsed() const
-    {
-        return m_constInvoked;
-    }
 
-    /*
-    // Just for academic reasons:
+
     Conster& operator=( const Conster& rhs )
     {
+        // Just for academic reasons:
         rhs.constInvokedThroughNonConstMethod();
         m_value = rhs.m_value;
         return *this;
-    }*/ 
+    } 
 
-    bool successfulOp() const
-    {
-        return m_operationSuccessful;
-    }
 
 private:
     int m_value;
-    mutable bool m_constInvoked;
-    mutable bool m_isReady; // using mutable to allow is ready to init it 
-    mutable bool m_operationSuccessful;
+    mutable bool m_isReady; // using mutable to allow isReady to init it 
 
 };
 
@@ -104,7 +97,12 @@ class ConsterTestSuite : public ::testing::Test
 {
 public:
 
-void SetUp() {}
+void SetUp()
+{
+    s_operationSuccessful = false;
+    s_constInvoked = false;
+}
+
 void TearDown() {}
 
 };
@@ -114,9 +112,9 @@ TEST_F( ConsterTestSuite, Non_Const_Conster_Uses_Non_Const_Method )
 {
     ConstNamespace::Conster c;
 
-    EXPECT_FALSE( c.wasConstMethodUsed() );
+    EXPECT_FALSE( s_constInvoked );
     EXPECT_EQ( 10, c.getValue() );
-    EXPECT_FALSE( c.wasConstMethodUsed() );
+    EXPECT_FALSE( s_constInvoked );
 }
 
 
@@ -124,57 +122,89 @@ TEST_F( ConsterTestSuite, Const_Conster_Uses_Const_Method )
 {
     const ConstNamespace::Conster c;
 
-    EXPECT_FALSE( c.wasConstMethodUsed() );
+    EXPECT_FALSE( s_constInvoked );
     EXPECT_EQ( 10, c.getValue() );
-    EXPECT_TRUE( c.wasConstMethodUsed() );
+    EXPECT_TRUE( s_constInvoked );
 }
 
 
 TEST_F( ConsterTestSuite, Non_Const_Conster_Invokes_Non_Const_Method_But_Logic_Accesses_Const_Method )
 {
     ConstNamespace::Conster c;
-    EXPECT_FALSE( c.wasConstMethodUsed() );
+    EXPECT_FALSE( s_constInvoked );
     
     // This should invoke the non-const overload of constInvoked...
     c.constInvokedThroughNonConstMethod();
 
-    EXPECT_TRUE( c.wasConstMethodUsed() );
+    EXPECT_TRUE( s_constInvoked );
 }
 
 
 TEST_F( ConsterTestSuite, Const_Conster_Invokes_Const_Method_Which_Contains_Shared_Logic )
 {
     const ConstNamespace::Conster c;
-    EXPECT_FALSE( c.wasConstMethodUsed() );
+    EXPECT_FALSE( s_constInvoked );
     
     c.constInvokedThroughNonConstMethod();
 
-    EXPECT_TRUE( c.wasConstMethodUsed() );
+    EXPECT_TRUE( s_constInvoked );
 }
 
 
 TEST_F( ConsterTestSuite, Const_Method_Can_Be_Accessed_By_Non_Const )
 {
     ConstNamespace::Conster c;
-    EXPECT_FALSE( c.wasConstMethodUsed() );
+    EXPECT_FALSE( s_constInvoked );
 
-    c.onlyNonOverloaded();
+    c.nonOverloaded();
 
-    EXPECT_TRUE( c.wasConstMethodUsed() );
+    EXPECT_TRUE( s_constInvoked );
     
 }
 
 TEST_F( ConsterTestSuite, Const_Method_Fails_To_Change_Value )
 {
     const ConstNamespace::Conster c;
-    EXPECT_FALSE( c.wasConstMethodUsed() );
+    EXPECT_FALSE( s_constInvoked );
     EXPECT_EQ( 10, c.getValue() );
     
     c.setValue( 30 );
 
     EXPECT_EQ( 10, c.getValue() );
-    EXPECT_FALSE( c.successfulOp() );
-    EXPECT_TRUE( c.wasConstMethodUsed() );
+    EXPECT_FALSE( s_operationSuccessful );
+    EXPECT_TRUE( s_constInvoked );
+}
+
+
+TEST_F( ConsterTestSuite, Non_Const_Conster_Passed_As_const_Reference_Uses_Const_Methods )
+{
+    EXPECT_FALSE( s_constInvoked );
+ 
+    ConstNamespace::Conster c;   
+    ConstNamespace::Conster c2;
+
+    // c2 should be received as a const ref
+    c = c2;
+
+    EXPECT_TRUE( s_constInvoked );
+}
+
+
+TEST_F( ConsterTestSuite, isReady_Changes_Mutable_Const_Member_Only_Once )
+{
+    ConstNamespace::Conster c;
+
+    EXPECT_FALSE( s_constInvoked );
+
+    EXPECT_EQ(0, s_accessCounter );
+    EXPECT_TRUE( c.isReady() );
+    EXPECT_EQ(1, s_accessCounter );
+    EXPECT_TRUE( c.isReady() );
+    EXPECT_EQ(1, s_accessCounter );
+    EXPECT_TRUE( c.isReady() );
+    EXPECT_EQ(1, s_accessCounter );
+
+    EXPECT_TRUE( s_constInvoked );
 }
 
 /*
