@@ -3,6 +3,7 @@ PROJECT( cpp_exercises )
 
 ADD_SUBDIRECTORY(const_test)
 ADD_SUBDIRECTORY(singleton_test)
+ADD_SUBDIRECTORY(construction_test)
 
 LIST( APPEND CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS} -g")
 

@@ -1,0 +1,16 @@
+INCLUDE_DIRECTORIES(${CMAKE_INSTALL_PREFIX}/include)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
+
+FIND_LIBRARY( GTEST gtest ${CMAKE_INSTALL_PREFIX} )
+FIND_LIBRARY( GMOCK gmock ${CMAKE_INSTALL_PREFIX} )
+FIND_LIBRARY( GTEST_MAIN gtest_main ${CMAKE_INSTALL_PREFIX} )
+
+# add a library here that you can link to the test for practice
+
+ADD_EXECUTABLE( ConstructionTest constructionTest.cpp )
+TARGET_LINK_LIBRARIES( ConstructionTest ${GMOCK} ${GTEST} ${GTEST_MAIN} pthread)
+
+ENABLE_TESTING()
+
+ADD_TEST( NAME ConstructionTest COMMAND ConstructionTest )
+
